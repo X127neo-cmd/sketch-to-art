@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
         * {
             box-sizing: border-box;
         }
+
         body {
             font-family: Arial, sans-serif;
             text-align: center;
@@ -16,28 +18,33 @@
             margin: 0;
             padding: 20px;
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
+
         h1 {
             color: #333;
             margin-bottom: 10px;
         }
+
         .subtitle {
             color: #666;
             margin-bottom: 30px;
         }
+
         .draw-area {
             display: flex;
             gap: 20px;
             justify-content: center;
             flex-wrap: wrap;
         }
+
         .canvas-box {
             flex: 1;
             min-width: 300px;
@@ -45,19 +52,23 @@
             border-radius: 10px;
             padding: 15px;
         }
+
         .canvas-box h3 {
             margin-top: 0;
             color: #555;
         }
+
         canvas {
             border: 2px solid #ddd;
             background: white;
             cursor: crosshair;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+
         .buttons {
             margin-top: 20px;
         }
+
         button {
             background: #4CAF50;
             color: white;
@@ -69,39 +80,69 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
+
         button:hover {
             transform: scale(1.05);
         }
+
         button:active {
             transform: scale(0.95);
         }
+
         .clear-btn {
             background: #f44336;
         }
+
         .improve-btn {
             background: #2196F3;
         }
+
         .result-img {
             max-width: 100%;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
+
         .loading {
             display: none;
             margin-top: 20px;
             color: #666;
         }
+
         .error {
             color: red;
             margin-top: 10px;
         }
+
+        .prompt-box {
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .prompt-box label {
+            font-size: 14px;
+            color: #555;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .prompt-box textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            resize: vertical;
+            box-sizing: border-box;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🎨 草图变魔法</h1>
         <div class="subtitle">左边画个草图，右边让AI帮你完善！</div>
-        
+
         <div class="draw-area">
             <div class="canvas-box">
                 <h3>📝 你的草图</h3>
@@ -109,8 +150,12 @@
                 <div class="buttons">
                     <button class="clear-btn" onclick="clearCanvas()">🗑️ 清空画板</button>
                 </div>
+                <div class="prompt-box">
+                    <label for="userPrompt">✨ 添加文字描述（可选）：</label>
+                    <textarea id="userPrompt" rows="3" placeholder="例如：变成卡通风格，背景加彩虹..."></textarea>
+                </div>
             </div>
-            
+
             <div class="canvas-box">
                 <h3>✨ AI 完善结果</h3>
                 <div id="resultArea">
@@ -122,22 +167,23 @@
                 </div>
             </div>
         </div>
-        <div id="loading" class="loading">🤖 AI正在创作中，请稍等...</div>
+
         <div id="errorMsg" class="error"></div>
+        <div id="loading" class="loading">🤖 AI正在创作中，请稍等...</div>
     </div>
 
     <script>
         // 获取画板元素
         const canvas = document.getElementById('sketchCanvas');
         const ctx = canvas.getContext('2d');
-        
+
         // 设置画笔
         let drawing = false;
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 5;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        
+
         // 清空画板
         function clearCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -145,7 +191,7 @@
             document.getElementById('placeholder').style.display = 'block';
             document.getElementById('errorMsg').innerText = '';
         }
-        
+
         // 鼠标事件
         canvas.addEventListener('mousedown', (e) => {
             drawing = true;
@@ -153,22 +199,22 @@
             const pos = getMousePos(canvas, e);
             ctx.moveTo(pos.x, pos.y);
         });
-        
+
         canvas.addEventListener('mousemove', (e) => {
             if (!drawing) return;
             const pos = getMousePos(canvas, e);
             ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
         });
-        
+
         canvas.addEventListener('mouseup', () => {
             drawing = false;
         });
-        
+
         canvas.addEventListener('mouseleave', () => {
             drawing = false;
         });
-        
+
         // 获取鼠标位置
         function getMousePos(canvas, e) {
             const rect = canvas.getBoundingClientRect();
@@ -179,34 +225,37 @@
                 y: (e.clientY - rect.top) * scaleY
             };
         }
-        
+
         // 发送给AI
         async function sendToAI() {
             const loading = document.getElementById('loading');
             const errorMsg = document.getElementById('errorMsg');
             const resultImage = document.getElementById('resultImage');
             const placeholder = document.getElementById('placeholder');
-            
-            // 获取画板数据
+
             const imageData = canvas.toDataURL('image/png');
-            
-            // 显示加载中
+            const userPrompt = document.getElementById('userPrompt').value;
+            console.log("前端获取到的文字:", userPrompt);
+
             loading.style.display = 'block';
             errorMsg.innerText = '';
             resultImage.style.display = 'none';
             placeholder.style.display = 'none';
-            
+
             try {
                 const response = await fetch('/api/improve', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ imageData: imageData })
+                    body: JSON.stringify({
+                        imageData: imageData,
+                        prompt: userPrompt || "根据草图生成一张精美的数字绘画"
+                    })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     resultImage.src = data.imageUrl;
                     resultImage.style.display = 'block';
@@ -221,11 +270,12 @@
                 loading.style.display = 'none';
             }
         }
-        
+
         // 初始化白色背景
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#000000';
     </script>
 </body>
+
 </html>

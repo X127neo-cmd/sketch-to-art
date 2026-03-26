@@ -18,7 +18,8 @@ app.use(express.static('public'));
 app.post('/api/improve', async (req, res) => {
     try {
         // 1. 接收前端发来的图片数据
-        const { imageData } = req.body;
+        const { imageData, prompt } = req.body;
+console.log("收到的文字描述:", prompt);
         
         if (!imageData) {
             return res.status(400).json({ error: '没有收到图片数据' });
